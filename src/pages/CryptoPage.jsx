@@ -6,6 +6,7 @@ import { SingleCoin } from "../config/api";
 import { Typography, styled } from "@mui/material";
 import CoinInfo from "../components/CoinInfo";
 import ReactHtmlParser from "react-html-parser";
+import CoinInfo2 from "../components/CoinInfo2";
 
 const CryptoContainer = styled("div")(({ theme }) => ({
   display: "flex",

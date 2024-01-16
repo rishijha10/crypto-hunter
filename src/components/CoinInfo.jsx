@@ -1,20 +1,19 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
-import { HistoricalChart, SingleCoin } from "../config/api";
-import { Line } from "react-chartjs-2";
+import { HistoricalChart } from "../config/api";
 import { CircularProgress, createTheme, ThemeProvider } from "@mui/material";
-import SelectButton from "./SelectButton";
-import { chartDays } from "../config/data";
-import { CryptoState } from "../CryptoContext";
 import { styled } from "@mui/material";
-import { useParams } from "react-router-dom";
+import axios from "axios";
+import { Line } from "react-chartjs-2";
+import Chart from 'chart.js/auto';
+import { chartDays } from "../config/data";
+import SelectButton from './SelectButton'
 
-const CoinInfo = () => {
+
+const CoinInfo = ({ coin }) => {
   const [historicData, setHistoricData] = useState();
   const [days, setDays] = useState(1);
-  const { currency } = CryptoState();
-  const [coin, setCoin] = useState();
-  const { id } = useParams();
+  const [currency, setCurrency] = useState("USD");
+  const [loading, setLoading] = useState(true);
 
   const StyledDiv = styled("div")({
     width: "75%",
@@ -32,21 +31,17 @@ const CoinInfo = () => {
     },
   });
 
-  const fetchCoin = async () => {
-    const { data } = await axios.get(SingleCoin(id));
-    setCoin(data);
-  };
-
-  useEffect(() => {
-    fetchCoin();
-  }, [id]);
-
   const fetchHistoricData = async () => {
-    if (coin && coin.id) {
+    setLoading(true);
+    try {
       const { data } = await axios.get(
         HistoricalChart(coin.id, days, currency)
       );
       setHistoricData(data.prices);
+    } catch (error) {
+      console.error("Error fetching historic data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,57 +59,61 @@ const CoinInfo = () => {
     },
   });
 
+  // Function to create the chart
+  const createChart = () => {
+    const ctx = document.getElementById("coin-chart");
+
+    // Check if the chart already exists, destroy it before creating a new one
+    if (ctx && ctx.chart) {
+      ctx.chart.destroy();
+    }
+
+    // Create a new Line chart
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: historicData.map((coin) => {
+          let date = new Date(coin[0]);
+          let time =
+            date.getHours() > 12
+              ? `${date.getHours() - 12}:${date.getMinutes()} PM`
+              : `${date.getHours()}:${date.getMinutes()} AM`;
+          return days === 1 ? time : date.toLocaleDateString();
+        }),
+        datasets: [
+          {
+            data: historicData.map((coin) => coin[1]),
+            label: `Price ( Past ${days} Days ) in ${currency}`,
+            borderColor: "#EEBC1D",
+          },
+        ],
+      },
+      options: {
+        elements: {
+          point: {
+            radius: 1,
+          },
+        },
+      },
+    });
+  };
+
+  // Call createChart whenever historicData changes
+  useEffect(() => {
+    if (historicData) {
+      createChart();
+    }
+  }, [historicData]);
+
   return (
     <ThemeProvider theme={darkTheme}>
       <StyledDiv>
-        {!historicData ? (
-          <CircularProgress
-            style={{ color: "gold" }}
-            size={250}
-            thickness={1}
-          />
+        {loading ? (
+          <CircularProgress style={{ color: "gold" }} size={250} thickness={1} />
         ) : (
-          historicData.length > 0 && (
-            <Line
-              data={{
-                labels: historicData.map((coin) => {
-                  let date = new Date(coin[0]);
-                  let time =
-                    date.getHours() > 12
-                      ? `${date.getHours() - 12}:${date.getMinutes()} PM`
-                      : `${date.getHours()}:${date.getMinutes()} AM`;
-                  return days === 1 ? time : date.toLocaleDateString();
-                }),
-
-                datasets: [
-                  {
-                    data: historicData.map((coin) => coin[1]),
-                    label: `Price ( Past ${days} Days ) in ${currency}`,
-                    borderColor: "#EEBC1D",
-                  },
-                ],
-              }}
-              options={{
-                scales: {
-                  x: {
-                    type: "index",
-                    ticks: {
-                      autoSkip: true,
-                      maxTicksLimit: 20,
-                    },
-                  },
-                  y: {
-                    beginAtZero: true,
-                  },
-                },
-                elements: {
-                  point: {
-                    radius: 1,
-                  },
-                },
-              }}
-            />
-          )
+          <>
+            <canvas id="coin-chart"></canvas>
+          </>
         )}
       </StyledDiv>
     </ThemeProvider>

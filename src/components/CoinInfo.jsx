@@ -3,15 +3,14 @@ import { HistoricalChart } from "../config/api";
 import { CircularProgress, createTheme, ThemeProvider } from "@mui/material";
 import { styled } from "@mui/material";
 import axios from "axios";
-import { Line } from "react-chartjs-2";
+// import { Line } from "react-chartjs-2";
 import Chart from "chart.js/auto";
 import { chartDays } from "../config/data";
 import SelectButton from "./SelectButton";
 
 const CoinInfo = ({ coin }) => {
   const [historicData, setHistoricData] = useState();
-  const [days, setDays] = useState(1);
-  const [currency, setCurrency] = useState("USD");
+  const [days, setDays] = useState("24h");
   const [loading, setLoading] = useState(true);
 
   const StyledDiv = styled("div")({
@@ -33,10 +32,9 @@ const CoinInfo = ({ coin }) => {
   const fetchHistoricData = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(
-        HistoricalChart(coin?.id, days, currency)
-      );
-      setHistoricData(data.prices);
+      const { data } = await axios.get(HistoricalChart(coin?.uuid, days));
+      console.log(data.data.history[0].price);
+      setHistoricData(data.data.history);
     } catch (error) {
       console.error("Error fetching historic data:", error);
     } finally {
@@ -47,7 +45,7 @@ const CoinInfo = ({ coin }) => {
   useEffect(() => {
     fetchHistoricData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currency, days]);
+  }, [days]);
 
   const darkTheme = createTheme({
     palette: {
@@ -72,17 +70,17 @@ const CoinInfo = ({ coin }) => {
       type: "line",
       data: {
         labels: historicData.map((coin) => {
-          let date = new Date(coin[0]);
+          let date = new Date(coin.timestamp * 1000);
           let time =
             date.getHours() > 12
               ? `${date.getHours() - 12}:${date.getMinutes()} PM`
               : `${date.getHours()}:${date.getMinutes()} AM`;
-          return days === 1 ? time : date.toLocaleDateString();
+          return days === "24h" ? time : date.toLocaleDateString();
         }),
         datasets: [
           {
-            data: historicData.map((coin) => coin[1]),
-            label: `Price ( Past ${days} Days ) in ${currency}`,
+            data: historicData.map((coin) => coin.price),
+            label: `Price ( Past ${days} Days ) in $`,
             borderColor: "#EEBC1D",
           },
         ],
@@ -116,6 +114,29 @@ const CoinInfo = ({ coin }) => {
         ) : (
           <>
             <canvas id="coin-chart"></canvas>
+            <div
+              style={{
+                display: "flex",
+                marginTop: 20,
+                justifyContent: "space-around",
+                width: "100%",
+              }}
+            >
+              {chartDays.map((day) => {
+                return (
+                  <SelectButton
+                    key={day.value}
+                    onClick={() => {
+                      setDays(day.value);
+                      setLoading(false);
+                    }}
+                    selected={day.value === days}
+                  >
+                    {day.label}
+                  </SelectButton>
+                );
+              })}
+            </div>
           </>
         )}
       </StyledDiv>

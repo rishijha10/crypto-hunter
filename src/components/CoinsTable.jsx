@@ -18,7 +18,6 @@ import {
 import axios from "axios";
 import { CoinList } from "../config/api";
 import { useNavigate } from "react-router-dom";
-import { CryptoState } from "../CryptoContext";
 
 function numberWithCommas(x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -29,8 +28,6 @@ export default function CoinsTable() {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-
-  const { currency, symbol } = CryptoState();
 
   const history = useNavigate();
 
@@ -45,17 +42,17 @@ export default function CoinsTable() {
 
   const fetchCoins = async () => {
     setLoading(true);
-    const { data } = await axios.get(CoinList(currency));
-    console.log(data);
+    const { data } = await axios.get(CoinList());
+    // console.log(data.data.coins);
 
-    setCoins(data);
+    setCoins(data.data.coins);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchCoins();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currency]);
+  }, []);
 
   const handleSearch = () => {
     return coins.filter(
@@ -107,10 +104,10 @@ export default function CoinsTable() {
                 {handleSearch()
                   .slice((page - 1) * 10, (page - 1) * 10 + 10)
                   .map((row) => {
-                    const profit = row.price_change_percentage_24h > 0;
+                    const profit = Number(row.change) > 0;
                     return (
                       <TableRow
-                        onClick={() => history(`/coins/${row.id}`)}
+                        onClick={() => history(`/coins/${row.uuid}`)}
                         style={{
                           backgroundColor: "#16171a",
                           cursor: "pointer",
@@ -130,7 +127,7 @@ export default function CoinsTable() {
                           }}
                         >
                           <img
-                            src={row?.image}
+                            src={row?.iconUrl}
                             alt={row.name}
                             height="50"
                             style={{ marginBottom: 10 }}
@@ -152,8 +149,8 @@ export default function CoinsTable() {
                           </div>
                         </TableCell>
                         <TableCell align="right">
-                          {symbol}{" "}
-                          {numberWithCommas(row.current_price.toFixed(2))}
+                          ${" "}
+                          {numberWithCommas(Number(row.price).toFixed(2))}
                         </TableCell>
                         <TableCell
                           align="right"
@@ -163,12 +160,12 @@ export default function CoinsTable() {
                           }}
                         >
                           {profit && "+"}
-                          {row.price_change_percentage_24h.toFixed(2)}%
+                          {Number(row.change).toFixed(2)}%
                         </TableCell>
                         <TableCell align="right">
-                          {symbol}{" "}
+                          ${" "}
                           {numberWithCommas(
-                            row.market_cap.toString().slice(0, -6)
+                            Number(row.marketCap).toString().slice(0, -6)
                           )}
                           M
                         </TableCell>

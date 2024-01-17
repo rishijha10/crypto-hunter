@@ -1,8 +1,7 @@
 import { styled } from "@mui/material";
 
 const SelectButton = ({ children, selected, onClick }) => {
-  const UseStyle = styled({
-    selectbutton: {
+  const UseStyle = styled('span')({
       border: "1px solid gold",
       borderRadius: 5,
       padding: 10,
@@ -19,7 +18,6 @@ const SelectButton = ({ children, selected, onClick }) => {
       },
       width: "22%",
       //   margin: 5,
-    },
   });
 
 

@@ -59,11 +59,12 @@ const numberWithCommas = (x) => {
 export const CryptoPage = () => {
   const { id } = useParams();
   const [coin, setCoin] = useState();
-  const { currency, symbol } = CryptoState();
+  // const { currency, symbol } = CryptoState();
 
   const fetchCoin = async () => {
     const { data } = await axios.get(SingleCoin(id));
-    setCoin(data);
+    console.log(data.data.coin)
+    setCoin(data.data.coin);
   };
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export const CryptoPage = () => {
     <CryptoContainer>
       <SideBar>
         <img
-          src={coin?.image.large}
+          src={coin?.iconUrl}
           alt={coin?.name}
           height="200"
           style={{ marginBottom: 20 }}
@@ -91,7 +92,7 @@ export const CryptoPage = () => {
             textAlign: "justify",
           }}
         >
-          {ReactHtmlParser(coin?.description.en.split(". ")[0])}.
+          {ReactHtmlParser(coin?.description.split(". ")[0])}.
         </Typography>
         <StyledMarketDataDiv>
           <span style={{ display: "flex" }}>
@@ -103,7 +104,7 @@ export const CryptoPage = () => {
                 fontFamily: "Montserrat",
               }}
             >
-              {numberWithCommas(coin?.market_cap_rank)}
+              {numberWithCommas(Number(coin?.rank))}
             </Typography>
           </span>
 
@@ -116,9 +117,9 @@ export const CryptoPage = () => {
                 fontFamily: "Montserrat",
               }}
             >
-              {symbol}{" "}
+              ${" "}
               {numberWithCommas(
-                coin?.market_data.current_price[currency.toLowerCase()]
+                Number(coin?.price).toFixed(2)
               )}
             </Typography>
           </span>
@@ -131,9 +132,9 @@ export const CryptoPage = () => {
                 fontFamily: "Montserrat",
               }}
             >
-              {symbol}{" "}
+              ${" "}
               {numberWithCommas(
-                coin?.market_data.market_cap[currency.toLowerCase()]
+                Number(coin?.marketCap)
                   .toString()
                   .slice(0, -6)
               )}

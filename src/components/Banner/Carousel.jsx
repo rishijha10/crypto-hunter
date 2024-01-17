@@ -1,8 +1,7 @@
 import { styled } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { TrendingCoins } from "../../config/api";
-import { CryptoState } from "../../CryptoContext";
+import { CoinList } from "../../config/api";
 import AliceCarousel from "react-alice-carousel";
 import { Link } from "react-router-dom";
 
@@ -18,25 +17,24 @@ function numberWithCommas(x) {
 
 const Carousel = () => {
   const [trending, setTrending] = useState([]);
-  const { currency, symbol } = CryptoState();
 
   const fetchData = async () => {
-    const { data } = await axios.get(TrendingCoins(currency));
-    setTrending(data);
+    const { data } = await axios.get(CoinList());
+    // console.log(data.data.coins);
+    setTrending(data.data.coins.slice(0, 8));
   };
-  console.log(trending);
 
   useEffect(() => {
     fetchData();
-  }, [currency]);
+  }, []);
 
-  const items = trending.map((coin) => {
-    let profit = coin?.price_change_percentage_24h >= 0;
-
+  const items = trending.length > 0 && trending.map((coin) => {
+    let profit = coin?.change >= 0;
+    // console.log(profit);
     return (
       <Link
-        key={coin.id}
-        to={`/coins/${coin.id}`}
+        key={coin.uuid}
+        to={`/coins/${coin.uuid}`}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -47,7 +45,7 @@ const Carousel = () => {
         }}
       >
         <img
-          src={coin?.image}
+          src={coin?.iconUrl}
           alt={coin.name}
           height="80"
           style={{ marginBottom: 10 }}
@@ -62,15 +60,15 @@ const Carousel = () => {
             }}
           >
             {profit && "+"}
-            {coin?.price_change_percentage_24h?.toFixed(2)}%
+            {Number(coin?.change).toFixed(2)}%
           </span>
         </span>
         <span style={{ fontSize: 22, fontWeight: 500 }}>
-          {symbol} {numberWithCommas(coin?.current_price.toFixed(2))}
+          $ {numberWithCommas(Number(coin?.price).toFixed(2))}
         </span>
       </Link>
     );
-  });
+  }) || [];
 
   const responsive = {
     0: {

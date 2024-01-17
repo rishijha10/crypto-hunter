@@ -4,10 +4,9 @@ import { CircularProgress, createTheme, ThemeProvider } from "@mui/material";
 import { styled } from "@mui/material";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
-import Chart from 'chart.js/auto';
+import Chart from "chart.js/auto";
 import { chartDays } from "../config/data";
-import SelectButton from './SelectButton'
-
+import SelectButton from "./SelectButton";
 
 const CoinInfo = ({ coin }) => {
   const [historicData, setHistoricData] = useState();
@@ -35,7 +34,7 @@ const CoinInfo = ({ coin }) => {
     setLoading(true);
     try {
       const { data } = await axios.get(
-        HistoricalChart(coin.id, days, currency)
+        HistoricalChart(coin?.id, days, currency)
       );
       setHistoricData(data.prices);
     } catch (error) {
@@ -44,7 +43,7 @@ const CoinInfo = ({ coin }) => {
       setLoading(false);
     }
   };
-
+  useEffect(() => {}, [coin]);
   useEffect(() => {
     fetchHistoricData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,7 +108,11 @@ const CoinInfo = ({ coin }) => {
     <ThemeProvider theme={darkTheme}>
       <StyledDiv>
         {loading ? (
-          <CircularProgress style={{ color: "gold" }} size={250} thickness={1} />
+          <CircularProgress
+            style={{ color: "gold" }}
+            size={250}
+            thickness={1}
+          />
         ) : (
           <>
             <canvas id="coin-chart"></canvas>

@@ -6,7 +6,7 @@ import { SingleCoin } from "../config/api";
 import { Typography, styled } from "@mui/material";
 import CoinInfo from "../components/CoinInfo";
 import ReactHtmlParser from "react-html-parser";
-import CoinInfo2 from "../components/CoinInfo2";
+// import CoinInfo2 from "../";
 
 const CryptoContainer = styled("div")(({ theme }) => ({
   display: "flex",
@@ -69,7 +69,6 @@ export const CryptoPage = () => {
   useEffect(() => {
     fetchCoin();
   }, []);
-
 
   return (
     <CryptoContainer>
@@ -143,7 +142,7 @@ export const CryptoPage = () => {
           </span>
         </StyledMarketDataDiv>
       </SideBar>
-      <CoinInfo coin={coin} />
+      {coin && <CoinInfo coin={coin} />}
     </CryptoContainer>
   );
 };
